@@ -4,7 +4,7 @@
 
 1. **Reduce Cognitive Load** - Code should be immediately comprehensible. Don't make future-you load database schemas, trace abstractions, or hold complex state in working memory. Favor clarity over cleverness.
 
-2. **Deep Modules with Simple Interfaces** - Create abstractions that hide complexity behind clear, stable interfaces. When calling `Database.get_connection()` (see `db.py`), you shouldn't need to know connection pooling internals, min/max connections, or PostgreSQL configuration. Pull complexity downward into implementations, keep call sites simple and focused on intent.
+2. **Deep Modules with Simple Interfaces** - Create abstractions that hide complexity behind clear, stable interfaces. When calling `Database.get_connection()`, you shouldn't need to know connection pooling internals, min/max connections, or PostgreSQL configuration. Pull complexity downward into implementations, keep call sites simple and focused on intent.
 
 3. **Explicit Over Clever** - Direct control flow beats "clean" abstractions that hide behavior. If/elif chains are fine if they're clear. Avoid reflection, magic, or patterns that require tracing through multiple files to understand.
 
