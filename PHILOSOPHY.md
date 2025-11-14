@@ -209,30 +209,50 @@ def upload_document(file: UploadFile, company_id: int) -> Document:
     return save_document_with_chunks(company_id, file.filename, chunks)
 ```
 
-### 8. Pragmatic DRY
+### 8. Simplicity
 
-Abstract when duplication creates real maintenance burden, not for theoretical purity. Wait for 3 real examples before abstracting. Don't prematurely optimize for reuse that may never happen.
+Build what's needed now, not what might be needed later (YAGNI). Abstract when duplication creates real maintenance burden, not for theoretical purity. Wait for 3 real examples before creating an abstraction. Premature optimization and premature abstraction both add complexity without benefit.
 
-**Why:** Premature abstraction is harder to change than duplicated code. Wait until the pattern is clear before extracting it.
+**Why:** Speculative features and early abstractions make code harder to change when requirements actually emerge. Simple, concrete code is easier to understand and modify than clever, "flexible" code built for imaginary futures.
 
 **Example:**
 ```python
-# Two similar functions - DON'T abstract yet
-def send_welcome_email(user: User):
-    subject = "Welcome!"
-    body = f"Hi {user.name}, welcome to our service"
-    send_email(user.email, subject, body)
+# ❌ Complex - built for imagined future needs
+class DataProcessor:
+    def __init__(self, strategy: ProcessingStrategy, 
+                 cache: CacheProvider,
+                 validator: Validator):
+        self.strategy = strategy
+        self.cache = cache
+        self.validator = validator
+    
+    def process(self, data: Any) -> Any:
+        # Built a whole plugin system for one use case
+        validated = self.validator.validate(data)
+        cached = self.cache.get(validated)
+        if cached:
+            return cached
+        result = self.strategy.execute(validated)
+        self.cache.set(validated, result)
+        return result
 
-def send_password_reset_email(user: User, token: str):
-    subject = "Reset Password"
-    body = f"Hi {user.name}, reset link: {token}"
-    send_email(user.email, subject, body)
+# ✅ Simple - built for actual current need
+def process_user_data(data: dict[str, Any]) -> User:
+    if "email" not in data or "name" not in data:
+        raise ValidationError("Missing required fields")
+    
+    return User(
+        email=data["email"].lower(),
+        name=data["name"].strip()
+    )
 
-# Third similar function - NOW abstract
-def send_user_email(user: User, template: EmailTemplate, **kwargs):
-    subject = template.render_subject(**kwargs)
-    body = template.render_body(user=user, **kwargs)
-    send_email(user.email, subject, body)
+# When you have 3+ similar processing functions, THEN abstract:
+def process_data(data: dict, required_fields: list[str], 
+                 transform: Callable[[dict], T]) -> T:
+    for field in required_fields:
+        if field not in data:
+            raise ValidationError(f"Missing required field: {field}")
+    return transform(data)
 ```
 
 ### 9. Production-First
